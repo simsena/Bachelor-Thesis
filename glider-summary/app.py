@@ -3,7 +3,33 @@ import xarray as xr
 import cmocean
 import matplotlib.pyplot as plt
 import tempfile, os
-import pandas as pd
+
+
+# Adds a track map
+def plot_track(ds):
+    lat = ds["LATITUDE"].mean("PRES").values
+    lon = ds["LONGITUDE"].mean("PRES").values
+    order = ds["PROFILE_INDEX"].values
+
+    fig, ax = plt.subplots(figsize=(5, 4.3), constrained_layout=True)
+    #Co-Pilot prompt:"how can i add a color legend to my trackplot?"
+    sc = ax.scatter(
+        lon, lat,
+        c=order,
+        cmap="viridis",
+        s=14,
+        zorder=2
+    )
+
+    cbar = fig.colorbar(sc, ax=ax)
+    cbar.set_label("Profile index")
+
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    ax.set_title("Glider track")
+
+    return fig
+
 
 #https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config
 st.set_page_config(page_title= "Glider Mission Summary", layout="wide", initial_sidebar_state="auto")
@@ -44,6 +70,14 @@ if uploaded_file is not None:
 
     variables = ["TEMP", "PSAL", "DOX2", "FLU2", "TURB"]
     variables = [v for v in ["TEMP", "PSAL", "DOX2", "FLU2", "TURB"] if v in ds.data_vars]
+
+    if "LATITUDE" in ds and "LONGITUDE" in ds:
+        st.pyplot(plot_track(ds), use_container_width=False)
+    else:
+        st.info("No coordinates in this file.")
+    st.divider()
+
+
     fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
 
     for ax, v in zip(axs, variables):
@@ -69,7 +103,7 @@ if uploaded_file is not None:
 
     
 
-    st.pyplot(fig, use_container_width=False) 
+    st.pyplot(fig) 
 
 else:
     st.info("Please upload a .nc-file.")
