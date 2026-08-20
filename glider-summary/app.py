@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import tempfile, os
 
 
+#https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config
+st.set_page_config(page_title= "Glider Mission Summary", layout="wide", initial_sidebar_state="auto")
 
 # Adds a map showing the track of the glider
 def plot_track(ds):
@@ -32,12 +34,6 @@ def plot_track(ds):
     ax.set_title("Glider track")
 
     return fig
-
-
-#https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config
-st.set_page_config(page_title= "Glider Mission Summary", layout="wide", initial_sidebar_state="auto")
-
-
 
 #https://docs.streamlit.io/develop/api-reference/widgets/st.file_uploader
 
@@ -93,7 +89,7 @@ if uploaded_file is not None:
             ax.set_title("")
             ax.set_ylabel("Pressure [dbar]")
             ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
+            ax.spines['right'].set_visible(False)         
 
     # Hide x labels and add add lable to bottom plot
         for ax in axs.flat:
