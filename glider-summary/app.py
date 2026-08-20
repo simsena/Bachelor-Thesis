@@ -3,9 +3,11 @@ import xarray as xr
 import cmocean
 import matplotlib.pyplot as plt
 import tempfile, os
+import pandas as pd
 
+#https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config
+st.set_page_config(page_title= "Glider Mission Summary", layout="wide", initial_sidebar_state="auto")
 
-st.title("Glider Mission Summary")
 
 #https://docs.streamlit.io/develop/api-reference/widgets/st.file_uploader
 
@@ -21,25 +23,38 @@ if uploaded_file is not None:
         temp.write(uploaded_file.getvalue())
         temp_path = temp.name
 
-    ds = xr.open_dataset(temp_path).load() 
-    os.remove(temp_path)  
+    ds = xr.open_dataset(temp_path)
+    ds.load()      
+    ds.close()     
+    os.remove(temp_path) 
 
 
 #color makes a big difference. you can see it for the FLU2 variable the best 
+# Set cmocean colormaps for the corresponding values
     CMAPS = {
     "TEMP": cmocean.cm.thermal, "PSAL": cmocean.cm.haline,
     "DOX2": cmocean.cm.oxy, "FLU2": cmocean.cm.algae, "TURB": cmocean.cm.turbid,
-}
+    }
+
+#Set standardized lables
+    LABELS = {
+        "TEMP": "Temperature [°C]", "PSAL": "Salinity [PSU]", "DOX2": "Oxygen [µmol kg⁻¹]",
+        "FLU2": "Chlorophyll [mg m⁻³]", "TURB": "Turbidity [NTU]",
+    }
 
     variables = ["TEMP", "PSAL", "DOX2", "FLU2", "TURB"]
+    variables = [v for v in ["TEMP", "PSAL", "DOX2", "FLU2", "TURB"] if v in ds.data_vars]
     fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
 
     for ax, v in zip(axs, variables):
-        ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False) #yincreas = false to flip surface to the top
+        ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False, robust = True, cbar_kwargs={"label": LABELS[v]}) #yincreas = false to flip surface to the top
+        ax.set_title("")
+        ax.set_ylabel("Pressure [dbar]")
 
 # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axs.flat:
         ax.label_outer()
+    axs[-1].set_xlabel("Profile index")
 
     with st.sidebar:
         st.header("Metadata")
@@ -54,7 +69,7 @@ if uploaded_file is not None:
 
     
 
-    st.pyplot(fig) 
+    st.pyplot(fig, use_container_width=False) 
 
 else:
     st.info("Please upload a .nc-file.")
