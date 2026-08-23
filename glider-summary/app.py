@@ -35,6 +35,13 @@ def plot_track(ds):
 
     return fig
 
+# copilot prompt: "sidebar should show the metadata if it is available in the file"
+def get_metadata_value(attrs, key, default="-"):
+    value = attrs.get(key)
+    if value is None or value == "" or str(value).lower() == "nan":
+        return default
+    return value
+
 #https://docs.streamlit.io/develop/api-reference/widgets/st.file_uploader
 
 uploaded_file = st.file_uploader(
@@ -99,14 +106,18 @@ if uploaded_file is not None:
     #Add metadata to the sidebar 
         with st.sidebar:
             st.header("Metadata")
-            # Todo: see what i want to include here 
-            st.write("**Title of the file:**", ds.attrs['title'])
-            st.write("**Institution:**", ds.attrs['institution'])
-            st.write("**Sea name:**", ds.attrs['sea_name'])
-            st.write("**Deployment ship name:**", ds.attrs['deployment_ship_name'])
-            st.write("**Coverage time start:**", ds.attrs['time_coverage_start'])
-            st.write("**Coverage time end:**", ds.attrs['time_coverage_end'])
-            st.write("**Data mode:**", ds.attrs['data_mode'])
+            metadata_fields = [
+                ("Title of the file", "title"),
+                ("Institution", "institution"),
+                ("Sea name", "sea_name"),
+                ("Deployment ship name", "deployment_ship_name"),
+                ("Coverage time start", "time_coverage_start"),
+                ("Coverage time end", "time_coverage_end"),
+                ("Data mode", "data_mode"),
+            ]
+
+            for label, key in metadata_fields:
+                st.write(f"**{label}:**", get_metadata_value(ds.attrs, key))
 
     
 
