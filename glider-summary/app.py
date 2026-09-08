@@ -89,9 +89,9 @@ if uploaded_file is not None:
         st.divider()
 
     with right_col:
-        fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+        fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True, squeeze=False) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
     # Plot each measurement against pressure in a separate subplot
-        for ax, v in zip(axs, variables):
+        for ax, v in zip(axs.flat, variables):
             ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False, robust = True, cbar_kwargs={"label": LABELS[v]}) # yincrease = False makes the y-axis go from top to bottom 
             ax.set_title("")
             ax.set_ylabel("Pressure [dbar]")
@@ -101,7 +101,7 @@ if uploaded_file is not None:
     # Hide x labels and add add lable to bottom plot
         for ax in axs.flat:
             ax.label_outer()
-        axs[-1].set_xlabel("Profile index")
+        axs.flat[-1].set_xlabel("Profile index")
 
     #Add metadata to the sidebar 
         with st.sidebar:
