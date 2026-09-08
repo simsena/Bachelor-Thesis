@@ -43,7 +43,6 @@ def get_metadata_value(attrs, key, default="-"):
     return value
 
 #https://docs.streamlit.io/develop/api-reference/widgets/st.file_uploader
-
 uploaded_file = st.file_uploader(
     "Drop a NetCDF file here!",
     type=["nc"],
@@ -77,51 +76,61 @@ if uploaded_file is not None:
     # Filter variables and only keep those present in the dataset
     variables = [v for v in ["TEMP", "PSAL", "DOX2", "FLU2", "TURB"] if v in ds.data_vars]
 
+    tab_labels = ["Overview"] + variables
+    tabs = st.tabs(tab_labels)
+    with tabs[0]:
+
     # Plot the track of the glider if latitude and longitude are in the dataset
     # https://docs.streamlit.io/develop/api-reference/layout/st.columns
     # Add columns, left being the track and right being the profile plots
-    left_col, right_col = st.columns([1, 2])
-    with left_col:
-        if "LATITUDE" in ds and "LONGITUDE" in ds:
-            st.pyplot(plot_track(ds), use_container_width=False) # use_container_width = False makes the plot smaller than the full width of the page
-        else:
-            st.info("No coordinates in this file.")
-        st.divider()
+        left_col, right_col = st.columns([1, 2])
+        with left_col:
+            if "LATITUDE" in ds and "LONGITUDE" in ds:
+                st.pyplot(plot_track(ds), use_container_width=False) # use_container_width = False makes the plot smaller than the full width of the page
+            else:
+                st.info("No coordinates in this file.")
+            st.divider()
 
-    with right_col:
-        fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True, squeeze=False) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+        with right_col:
+            fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True, squeeze=False) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
     # Plot each measurement against pressure in a separate subplot
-        for ax, v in zip(axs.flat, variables):
-            ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False, robust = True, cbar_kwargs={"label": LABELS[v]}) # yincrease = False makes the y-axis go from top to bottom 
-            ax.set_title("")
-            ax.set_ylabel("Pressure [dbar]")
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)         
+            for ax, v in zip(axs.flat, variables):
+                ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False, robust = True, cbar_kwargs={"label": LABELS[v]}) # yincrease = False makes the y-axis go from top to bottom 
+                ax.set_title("")
+                ax.set_ylabel("Pressure [dbar]")
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)         
 
     # Hide x labels and add add lable to bottom plot
-        for ax in axs.flat:
-            ax.label_outer()
-        axs.flat[-1].set_xlabel("Profile index")
+            for ax in axs.flat:
+                ax.label_outer()
+            axs.flat[-1].set_xlabel("Profile index")
 
     #Add metadata to the sidebar 
-        with st.sidebar:
-            st.header("Metadata")
-            metadata_fields = [
-                ("Title of the file", "title"),
-                ("Institution", "institution"),
-                ("Sea name", "sea_name"),
-                ("Deployment ship name", "deployment_ship_name"),
-                ("Coverage time start", "time_coverage_start"),
-                ("Coverage time end", "time_coverage_end"),
-                ("Data mode", "data_mode"),
-            ]
+            with st.sidebar:
+                st.header("Metadata")
+                metadata_fields = [
+                    ("Title of the file", "title"),
+                    ("Institution", "institution"),
+                    ("Sea name", "sea_name"),
+                    ("Deployment ship name", "deployment_ship_name"),
+                    ("Coverage time start", "time_coverage_start"),
+                    ("Coverage time end", "time_coverage_end"),
+                    ("Data mode", "data_mode"),
+                ]
 
-            for label, key in metadata_fields:
-                st.write(f"**{label}:**", get_metadata_value(ds.attrs, key))
+                for label, key in metadata_fields:
+                    st.write(f"**{label}:**", get_metadata_value(ds.attrs, key))
 
     
 
         st.pyplot(fig) 
+
+    for tabs, v in zip(tabs[1:], variables):
+        with tabs:
+            st.write(f"### {LABELS[v]}")
+
+
 
 else:
     st.info("Please upload a .nc-file.")
