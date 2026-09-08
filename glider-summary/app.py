@@ -29,9 +29,10 @@ def plot_track(ds):
     cbar.set_label("Profile index")
 
     ax.set_aspect("equal", adjustable="datalim")
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
+    ax.set_xlabel("Longitude [°E]")
+    ax.set_ylabel("Latitude [°N]")
     ax.set_title("Glider track")
+    ax.tick_params(axis="x", rotation=45) #rotate x-axis labels for better readability
 
     return fig
 
