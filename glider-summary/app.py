@@ -124,10 +124,10 @@ if uploaded_file is not None:
 
     
 
-        st.pyplot(fig) 
+            st.pyplot(fig) 
 
-    for tabs, v in zip(tabs[1:], variables):
-        with tabs:
+    for tab, v in zip(tabs[1:], variables):
+        with tab:
             st.write(f"### {LABELS[v]}")
 
 
