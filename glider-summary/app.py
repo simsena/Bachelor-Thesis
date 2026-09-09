@@ -4,10 +4,16 @@ import cmocean
 import matplotlib.pyplot as plt
 import tempfile, os
 import plotly.graph_objects as go
-
+import matplotlib
+import numpy as np
 
 #https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config
 st.set_page_config(page_title= "Glider Mission Summary", layout="wide", initial_sidebar_state="auto")
+
+def cmap_to_plotly(cmap, n=256):
+    xs = np.linspace(0, 1, n)
+    return [[float(x), matplotlib.colors.to_hex(cmap(x))] for x in xs]
+
 
 # Adds a map showing the track of the glider
 def plot_track(ds):
@@ -133,7 +139,7 @@ if uploaded_file is not None:
         with tab:
             st.write(f"### {LABELS[v]}")
             # https://plotly.com/python/heatmaps/
-            fig = go.Figure(go.Heatmap(z=ds[v].values.T, x=ds["PROFILE_INDEX"].values, y=ds["PRES"].values, colorbar=dict(title=LABELS[v]), zsmooth="best"))
+            fig = go.Figure(data = go.Heatmap(z=ds[v].values.T, x=ds["PROFILE_INDEX"].values, y=ds["PRES"].values, colorscale=cmap_to_plotly(CMAPS[v]), zsmooth = "best"))
             fig.update_layout(
             xaxis_title="Profile index",
             yaxis_title="Pressure [dbar]",
