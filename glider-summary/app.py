@@ -104,10 +104,8 @@ if uploaded_file is not None:
             fig, axs = plt.subplots(len(variables),1,figsize=(8, 14), constrained_layout=True, sharex = True, squeeze=False) #https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
     # Plot each measurement against pressure in a separate subplot
             for ax, v in zip(axs.flat, variables):
-                ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False, robust = True, cbar_kwargs={"label": LABELS[v]}) # yincrease = False makes the y-axis go from top to bottom 
-                ax.set_title("")
-                ax.set_ylabel("Pressure [dbar]")
-                ax.spines['top'].set_visible(False)
+                ds[v].plot(y="PRES", ax=ax, cmap=CMAPS[v], yincrease=False, robust = True, center = False , cbar_kwargs={"label": LABELS[v]}) # yincrease = False makes the y-axis go from top to bottom 
+                # center = False makes the colorbar not centered around 0. Since chlorphyll and turbidity are always positive. The slightly negative values seem to be just noise. 
                 ax.spines['right'].set_visible(False)         
 
     # Hide x labels and add add lable to bottom plot
@@ -138,8 +136,19 @@ if uploaded_file is not None:
     for tab, v in zip(tabs[1:], variables):
         with tab:
             st.write(f"### {LABELS[v]}")
+            zmin = float(np.nanpercentile(ds[v].values, 2))
+            zmax = float(np.nanpercentile(ds[v].values, 98))
+
             # https://plotly.com/python/heatmaps/
-            fig = go.Figure(data = go.Heatmap(z=ds[v].values.T, x=ds["PROFILE_INDEX"].values, y=ds["PRES"].values, colorscale=cmap_to_plotly(CMAPS[v]), zsmooth = "best"))
+            fig = go.Figure(data = go.Heatmap(
+                z=ds[v].values.T,
+                x=ds["PROFILE_INDEX"].values, 
+                y=ds["PRES"].values, 
+                colorscale=cmap_to_plotly(CMAPS[v]),
+                zmin=zmin,
+                zmax=zmax, 
+                colorbar=dict(title=LABELS[v])))
+            
             fig.update_layout(
             xaxis_title="Profile index",
             yaxis_title="Pressure [dbar]",
