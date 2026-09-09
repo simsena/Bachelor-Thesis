@@ -3,6 +3,7 @@ import xarray as xr
 import cmocean
 import matplotlib.pyplot as plt
 import tempfile, os
+import plotly.graph_objects as go
 
 
 #https://docs.streamlit.io/develop/api-reference/configuration/st.set_page_config
@@ -77,6 +78,7 @@ if uploaded_file is not None:
     # Filter variables and only keep those present in the dataset
     variables = [v for v in ["TEMP", "PSAL", "DOX2", "FLU2", "TURB"] if v in ds.data_vars]
 
+    # https://docs.streamlit.io/develop/api-reference/layout/st.tabs
     tab_labels = ["Overview"] + variables
     tabs = st.tabs(tab_labels)
     with tabs[0]:
@@ -130,6 +132,15 @@ if uploaded_file is not None:
     for tab, v in zip(tabs[1:], variables):
         with tab:
             st.write(f"### {LABELS[v]}")
+            # https://plotly.com/python/heatmaps/
+            fig = go.Figure(go.Heatmap(z=ds[v].values.T, x=ds["PROFILE_INDEX"].values, y=ds["PRES"].values, colorbar=dict(title=LABELS[v]), zsmooth="best"))
+            fig.update_layout(
+            xaxis_title="Profile index",
+            yaxis_title="Pressure [dbar]",
+            )
+            fig.update_yaxes(autorange="reversed")
+            st.plotly_chart(fig)
+            
 
 
 
