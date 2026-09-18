@@ -136,6 +136,13 @@ if uploaded_file is not None:
     for tab, v in zip(tabs[1:], variables):
         with tab:
             st.write(f"### {LABELS[v]}")
+            vmin = float(np.nanmin(ds[v].values))
+            vmax = float(np.nanmax(ds[v].values))
+            col_min, col_max = st.columns(2)
+            col_min.metric("Minimum", f"{vmin:.2f}")
+            col_max.metric("Maximum", f"{vmax:.2f}")
+
+
             zmin = float(np.nanpercentile(ds[v].values, 2))
             zmax = float(np.nanpercentile(ds[v].values, 98))
 
